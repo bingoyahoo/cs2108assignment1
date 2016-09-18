@@ -25,7 +25,7 @@ INPUT_FILE_TAGS_POSTINGS = "text_postings_tags.txt" # Contains actual postings
 OUTPUT_FILE_RANKING = "output_rankings.txt"
 
 
-def searchindex(input_query):
+def search_text_index(input_query):
 	""" Load the dictionary and execute the queries one by one"""
 	dict_pointers = {}
 	dict_doc_lengths = {}
@@ -175,5 +175,5 @@ if input_query == None:
 	usage()
 	sys.exit(2)
 
-searchindex(input_query)
+search_text_index(input_query)
 
