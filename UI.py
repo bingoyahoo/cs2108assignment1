@@ -1,4 +1,5 @@
 import sys
+import os
 import cv2
 from pyimagesearch.colordescriptor import ColorDescriptor
 from pyimagesearch.searcher import Searcher
@@ -6,8 +7,6 @@ from pyimagesearch.searcher import Searcher
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 import design
-
-
 
 class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	def __init__(self):
@@ -98,12 +97,11 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		results = searcher.search(self.queryfeatures, limit=16)
 
 		for (score, img_id) in results:
-			img_widget_icon = QListWidgetItem(QIcon("dataset/" + img_id), img_id)
+			fullpath = os.path.join(os.path.curdir, "dataset", img_id)
+			img_widget_icon = QListWidgetItem(QIcon(fullpath), img_id)
 			# img_widget_icon.setSizeHint(QtCore.QSize(180, 180))
 			self.listWidgetResults.addItem(img_widget_icon)
 
-		# self.listWidgetResults.addItem(QListWidgetItem(QIcon("assets/ic_flower.jpg"),"Tornado"));
-		# self.listWidgetResults.addItem(QListWidgetItem(QIcon("assets/ic_flower.jpg"),"Wallpaper"));
 
 	def clear_results(self):
 		self.listWidgetResults.clear()
