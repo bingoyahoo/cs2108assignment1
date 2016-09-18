@@ -9,6 +9,18 @@ class Window(QtGui.QMainWindow):
 		self.setWindowTitle("CS2108 Image Search")
 		self.setWindowIcon(QtGui.QIcon("assets/ic_image_search.png"))
 
+		extractAction = QtGui.QAction("&Exit", self)
+		extractAction.setShortcut("Ctrl+Q")
+		extractAction.setStatusTip("Leave the app")
+		extractAction.triggered.connect(self.close_application)
+
+		self.statusBar()
+
+		mainMenu = self.menuBar() # Need a variable because we are modifying it with more actions
+		fileMenu = mainMenu.addMenu("&File")
+		mainMenu.setNativeMenuBar(False)
+		fileMenu.addAction(extractAction)
+
 		self.home()
 
 	def home(self):
@@ -16,6 +28,7 @@ class Window(QtGui.QMainWindow):
 		btn = QtGui.QPushButton("Quit", self)
 		btn.clicked.connect(self.close_application)
 		btn.resize(btn.minimumSizeHint())
+		btn.move(50,50)
 
 		btn_picker = QtGui.QPushButton("Choose an image", self)
 		btn_picker.clicked.connect(self.choose_image)
@@ -27,11 +40,29 @@ class Window(QtGui.QMainWindow):
 		btn_picker.resize(btn.minimumSizeHint())
 		btn_picker.move(200, 100)
 
+
+		# Toolbar
+		extractAction = QtGui.QAction(QtGui.QIcon("assets/ic_image_search.png"), "Quit", self)
+		extractAction.triggered.connect(self.close_application)
+		
+		self.toolbar = self.addToolBar("Extraction")
+		self.toolbar.addAction(extractAction)
+
+
 		self.show()
 
+	def closeEvent(self, event):
+		event.ignore()
+		self.close_application()
+
 	def close_application(self):
-		print "Closing"
-		sys.exit()
+		choice = QtGui.QMessageBox.question(self, "Quit?", 
+			"Are you sure to quit?", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+
+		if choice == QtGui.QMessageBox.Yes:
+			sys.exit()
+		else:
+			pass
 
 	def choose_image(self):
 		pass
