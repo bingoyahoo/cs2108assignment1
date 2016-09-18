@@ -166,14 +166,17 @@ except getopt.GetoptError, err:
 # 	usage()
 # 	sys.exit(2)
 
-input_query = None
-for o, a in opts:
-	if o == '-q':
-		input_query = a
+def main():
+	input_query = None
+	for o, a in opts:
+		if o == '-q':
+			input_query = a
 
-if input_query == None:
-	usage()
-	sys.exit(2)
+	if input_query == None:
+		usage()
+		sys.exit(2)
 
-search_text_index(input_query)
+	search_text_index(input_query)
 
+if __name__ == '__main__':
+	main()

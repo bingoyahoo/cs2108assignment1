@@ -5,6 +5,7 @@ from pyimagesearch.colordescriptor import ColorDescriptor
 from pyimagesearch.searcher import Searcher
 from textsearch.index_text import build_normal_index
 from textsearch.index_text import index_tags_normal
+from textsearch.search_text import search_text_index
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
@@ -63,6 +64,10 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		# perform the search
 		searcher = Searcher("index.csv")
 		results = searcher.search(self.queryfeatures, limit=16)
+
+		# Perform text search
+		#if len(self.tags_search.getText) > 0
+			#search_text_index(self.tags_search.getText())
 
 		for (score, img_id) in results:
 			fullpath = os.path.join(os.path.curdir, "dataset", img_id)
