@@ -77,7 +77,7 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	def choose_image(self):
 		print "Chose"
 		
-		self.filename = QtGui.QFileDialog.getOpenFileName(self, "Open Image", "Images (*.jpg *.gif *.png)")
+		self.filename = QtGui.QFileDialog.getOpenFileName(self, "Open Image", os.path.dirname(__file__),"Images (*.jpg *.gif *.png)")
 		# file = open(name, "r") 	
 		self.label_query_img.setPixmap(QPixmap(self.filename).scaledToWidth(100) )
 
