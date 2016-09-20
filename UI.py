@@ -7,6 +7,9 @@ from textsearch.index_text import build_normal_index
 from textsearch.index_text import index_tags_normal
 from textsearch.search_text import search_text_index
 
+from SIFT.search_sift import SIFTandBOW
+
+
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 import design
@@ -17,6 +20,9 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.setupUi(self)
 		self.build_index()
 		self.home()
+		self.statesConfiguration = {"colorHist": True, "visualConcept": True, "visualKeyword": True, "deepLearning": True}
+
+		self.sab = SIFTandBOW()
 
 	def home(self):
 		"""Specific to page. Connect the buttons to functions"""
@@ -24,7 +30,38 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.btn_search.clicked.connect(self.search_image)
 		self.btn_quit.clicked.connect(self.close_application)
 		self.btn_reset.clicked.connect(self.clear_results)
+
+		self.checkBoxColorHist.stateChanged.connect(self.state_changed)
+		self.checkBoxVisualConcept.stateChanged.connect(self.state_changed)
+		self.checkBoxVisualKeyword.stateChanged.connect(self.state_changed)
+		self.checkBoxDeepLearning.stateChanged.connect(self.state_changed)
+
 		self.show()
+
+
+	def state_changed(self):
+		if self.checkBoxColorHist.isChecked():
+			self.statesConfiguration["colorHist"] = True
+		else:
+			self.statesConfiguration["colorHist"] = False
+
+		if self.checkBoxVisualConcept.isChecked():
+			self.statesConfiguration["visualConcept"] = True
+		else:
+			self.statesConfiguration["visualConcept"] = False
+
+		if self.checkBoxVisualKeyword.isChecked():
+			self.statesConfiguration["visualKeyword"] = True
+		else:
+			self.statesConfiguration["visualKeyword"] = False
+
+		if self.checkBoxDeepLearning.isChecked():
+			self.statesConfiguration["deepLearning"] = True
+		else:
+			self.statesConfiguration["deepLearning"] = False
+
+		print self.statesConfiguration
+
 
 	def closeEvent(self, event):
 		event.ignore()
@@ -47,7 +84,7 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 
 		self.label_query_img.setPixmap(QPixmap(self.filename).scaledToWidth(100) )
 
-		# process query image to feature vector
+		# COLOR HISTOGRAM -process query image to feature vector
 		# initialize the image descriptor
 		cd = ColorDescriptor((8, 12, 3))
 		self.filename = str(self.filename)
@@ -55,19 +92,31 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		# load the query image and describe it
 		self.queryfeatures = cd.describe(query)
 
+
+		self.hist_sift_query = self.sab.histogramBow(query)
+
+
 		# If tags exist, load them into the searchbar
 		if base_img_id in self.tags_index:
 			tags = " ".join(self.tags_index[base_img_id])
 			self.tags_search.setText(tags)
 
+
+
 	def search_image(self):
-		# perform the search
+		# Perform the search on Color Histogram
 		searcher = Searcher("index.csv")
 		results = searcher.search(self.queryfeatures, limit=16)
 
 		# Perform text search
 		#if len(self.tags_search.getText) > 0
 			#search_text_index(self.tags_search.getText())
+
+		# Perform search on SIFT
+		results_sift = self.sab.search(self.hist_sift_query, limit=160)
+		print results_sift
+
+		# distance = self.sab.chi2_distance(self.hist_sift_query, histogram1)
 
 		for (score, img_id) in results:
 			fullpath = os.path.join(os.path.curdir, "dataset", img_id)
