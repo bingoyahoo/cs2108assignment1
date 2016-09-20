@@ -1,8 +1,8 @@
 import sys
 import os
 import cv2
-from pyimagesearch.colordescriptor import ColorDescriptor
-from pyimagesearch.searcher import Searcher
+from colorhist.colordescriptor import ColorDescriptor
+from colorhist.searcher import Searcher
 from textsearch.index_text import build_normal_index
 from textsearch.index_text import index_tags_normal
 from textsearch.search_text import search_text_index
@@ -13,6 +13,7 @@ from SIFT.search_sift import SIFTandBOW
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 import design
+import glob
 
 class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	def __init__(self):
@@ -105,7 +106,7 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 
 	def search_image(self):
 		# Perform the search on Color Histogram
-		searcher = Searcher("index.csv")
+		searcher = Searcher("colorhist/index_color_hist.csv")
 		results = searcher.search(self.queryfeatures, limit=16)
 
 		# Perform text search
@@ -114,12 +115,9 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 
 		# Perform search on SIFT
 		results_sift = self.sab.search(self.hist_sift_query, limit=160)
-		print results_sift
-
-		# distance = self.sab.chi2_distance(self.hist_sift_query, histogram1)
 
 		for (score, img_id) in results:
-			fullpath = os.path.join(os.path.curdir, "dataset", img_id)
+			fullpath = glob.glob(os.path.join(os.path.curdir, "ImageData", "train", "data", "*", img_id) )[0]
 			img_widget_icon = QListWidgetItem(QIcon(fullpath), img_id)
 			self.listWidgetResults.addItem(img_widget_icon)
 

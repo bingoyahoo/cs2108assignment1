@@ -63,9 +63,8 @@ class SIFTandBOW:
     def search(self, query_hist, limit):
         scores = {}
         for x in self.img_hist.iteritems():
-            img_id = x[0] + ".jpg"
+            img_id = x[0]
             db_histogram = x[1]
-            # print len(x)
             distance = self.chi2_distance(query_hist, db_histogram)
             scores[img_id] = distance
 
@@ -76,16 +75,11 @@ class SIFTandBOW:
 
 
         largest = heapq.nsmallest(limit, heap) # Filter to Top K results based on score
-        # return [doc_id for score, doc_id in largest]
         return largest
 
 
 
 def main():
-    # OUTPUT_DICT = "dict.txt" #
-    # dictionary = open(OUTPUT_DICT, "rb")
-    # file_dictionary = pickle.load(dictionary)
-    # print file_dictionary
     pass
 
 if __name__ == '__main__':

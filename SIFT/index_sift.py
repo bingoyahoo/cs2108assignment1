@@ -10,7 +10,7 @@ OUTPUT_DICTIONARY = "output_dict.txt"
 OUTPUT_IMGID_HIST = "output_histograms.txt" # Contains img_id1 -> hist1, img_id2 -> hist2, ...
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-d", "--dataset", required = False, default='../dataset',
+ap.add_argument("-d", "--dataset", required = False, default='../ImageData/train/data/*/',
     help = "Path to the directory that contains the images to be indexed")
 ap.add_argument("-i", "--index", required = False, default='index.csv',
     help = "Path to where the computed index will be stored")
@@ -37,9 +37,9 @@ dict_imgid_hist = {}
 for imagePath in glob.glob(args["dataset"] + "/*.jpg"):
     imageID = imagePath[imagePath.rfind("/") + 1:]
     image = cv2.imread(imagePath)
-    img_id = os.path.basename(imagePath).split(".jpg")[0]
+    img_id = os.path.basename(imagePath)
 
-    histogram = sab.histogramBow(image,bow_extract)
+    histogram = sab.histogramBow(image)
     dict_imgid_hist[img_id] = histogram
 
 # Store dictionary
@@ -52,11 +52,5 @@ file_img_hist = open(OUTPUT_IMGID_HIST, "wb")
 pickle.dump(dict_imgid_hist, file_img_hist)
 file_img_hist.close()
 
-
-# image  = cv2.imread('0042_461838579.jpg')
-# histogram2 = sab.histogramBow(image,bow_extract)
-# d = sab.chi2_distance(histogram2,histogram1)
-
-# print d
 
 
