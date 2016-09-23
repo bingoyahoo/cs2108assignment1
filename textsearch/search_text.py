@@ -69,9 +69,6 @@ def execute_query(line, dict_pointers, limit):
 	query = line.split()
 	query = [x.lower() for x in query]
 
-	print query
-
-
 	weighted_term_freq_for_query = 0.0
 	l2_norm_query = 0.0
 

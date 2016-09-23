@@ -7,7 +7,7 @@ import heapq
 
 class SIFTandBOW:
     sift = cv2.SIFT()
-    dictionarySize = 10
+    dictionarySize = 1000
     BOW = cv2.BOWKMeansTrainer(dictionarySize)
 
     def __init__(self):

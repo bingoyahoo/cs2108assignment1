@@ -44,6 +44,15 @@ import numpy as np
 from six.moves import urllib
 import tensorflow as tf
 
+import argparse
+import glob
+import cPickle as pickle
+
+OUTPUT_PROBABILITIES = "output_probabilities.txt"
+
+
+
+
 FLAGS = tf.app.flags.FLAGS
 
 # classify_image_graph_def.pb:
@@ -78,7 +87,7 @@ def create_graph():
     _ = tf.import_graph_def(graph_def, name='')
 
 
-def run_inference_on_image(image):
+def run_inference_on_image(image_dir):
   """Runs inference on an image.
 
   Args:
@@ -87,10 +96,7 @@ def run_inference_on_image(image):
   Returns:
     Nothing
   """
-  if not tf.gfile.Exists(image):
-    tf.logging.fatal('File does not exist %s', image)
-  image_data = tf.gfile.FastGFile(image, 'rb').read()
-
+  
   # Creates graph from saved GraphDef.
   create_graph()
 
@@ -104,15 +110,34 @@ def run_inference_on_image(image):
     #   encoding of the image.
     # Runs the softmax tensor by feeding the image_data as input to the graph.
     softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
-    predictions = sess.run(softmax_tensor,
-                           {'DecodeJpeg/contents:0': image_data})
-    predictions = np.squeeze(predictions)
+
+
+
+    dict_imgid_prob = {}
+    # use glob to grab the image paths and loop over them
+        # extract the image ID (i.e. the unique filename) from the image
+        # path and load the image itself
+    # Store dictionary
+    for imagePath in image_dir:
+      # tf.app.flags.DEFINE_string('image_file', imagePath,   ### here you can indicate the image file"""Absolute path to image file.""")
+      if not tf.gfile.Exists(imagePath):
+        tf.logging.fatal('File does not exist %s', imagePath)
+      image_data = tf.gfile.FastGFile(imagePath, 'rb').read()
+      imageID = imagePath[imagePath.rfind("/") + 1:]
+
+      predictions = sess.run(softmax_tensor,
+                             {'DecodeJpeg/contents:0': image_data})
+      predictions = np.squeeze(predictions)
+      dict_imgid_prob[imageID] = predictions
     # print("Vector length: ", len(predictions))
 
     # for dim in range(len(predictions)):
     #   print('%.5f ' % predictions[dim])
 
-    return predictions
+    file_dictionary = open(OUTPUT_PROBABILITIES, "wb")
+    pickle.dump(dict_imgid_prob, file_dictionary)
+    file_dictionary.close()
+
 
 def maybe_download_and_extract():
   """Download and extract model tar file."""
@@ -135,9 +160,21 @@ def maybe_download_and_extract():
 
 def main(_):
   maybe_download_and_extract()
-  image = (FLAGS.image_file if FLAGS.image_file else
-           os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
-  feature_vec = run_inference_on_image(image)
+  # image = (FLAGS.image_file if FLAGS.image_file else
+  #          os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
+  # feature_vec = run_inference_on_image([image])
+  
+  img_dir = glob.glob(args["dataset"] + "/*.jpg")
+  run_inference_on_image(img_dir)
+
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-d", "--dataset", required = False, default='../ImageData/train/data/*/',
+    help = "Path to the directory that contains the images to be indexed")
+ap.add_argument("-i", "--index", required = False, default='index.csv',
+    help = "Path to where the computed index will be stored")
+args = vars(ap.parse_args())
+
 
 
 if __name__ == '__main__':

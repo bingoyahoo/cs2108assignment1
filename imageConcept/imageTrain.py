@@ -5,6 +5,7 @@ class imageTrain:
     wordlist = []
     namelist = []
     vectors = []
+
     train = open(train_file,'r+')
     for line in train:
         linelist = line.split()
@@ -14,9 +15,11 @@ class imageTrain:
                 index = wordlist.index(i)
             except ValueError:
                 wordlist.append(i)
+
     vsize = len(wordlist)
     train.close()
     train = open(train_file,'r+')
+    
     for line in train:
         linelist = line.split()
         namelist.append(linelist[0])
@@ -32,6 +35,7 @@ class imageTrain:
             else:
                 vector.append(0)
         vectors.append(vector)
+        
     print wordlist #all trained words to describe
     print namelist #name of all used pics
     print vectors #vector of pics

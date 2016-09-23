@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>665</width>
+    <width>792</width>
     <height>536</height>
    </rect>
   </property>
@@ -71,6 +71,19 @@
       <item>
        <widget class="QLineEdit" name="tags_search"/>
       </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="doubleSpinBoxText">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="singleStep">
+         <double>0.500000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -89,6 +102,32 @@
        </widget>
       </item>
       <item>
+       <widget class="QDoubleSpinBox" name="doubleSpinBoxColorHist">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="singleStep">
+         <double>0.500000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <widget class="QCheckBox" name="checkBoxVisualConcept">
         <property name="enabled">
          <bool>true</bool>
@@ -103,6 +142,32 @@
          <bool>false</bool>
         </property>
        </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="doubleSpinBoxVisualConcept">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="singleStep">
+         <double>0.500000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item>
        <widget class="QCheckBox" name="checkBoxVisualKeyword">
@@ -121,6 +186,32 @@
        </widget>
       </item>
       <item>
+       <widget class="QDoubleSpinBox" name="doubleSpinBoxVisualKeyword">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="singleStep">
+         <double>0.500000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <widget class="QCheckBox" name="checkBoxDeepLearning">
         <property name="enabled">
          <bool>true</bool>
@@ -130,6 +221,19 @@
         </property>
         <property name="checked">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="doubleSpinBoxDeepLearning">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="singleStep">
+         <double>0.500000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -150,7 +254,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="dragDropMode">
-       <enum>QAbstractItemView::NoDragDrop</enum>
+       <enum>QAbstractItemView::DragDrop</enum>
       </property>
       <property name="alternatingRowColors">
        <bool>false</bool>
@@ -168,7 +272,7 @@
        <enum>QListView::Adjust</enum>
       </property>
       <property name="spacing">
-       <number>100</number>
+       <number>150</number>
       </property>
       <property name="viewMode">
        <enum>QListView::IconMode</enum>
@@ -216,7 +320,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>665</width>
+     <width>792</width>
      <height>22</height>
     </rect>
    </property>

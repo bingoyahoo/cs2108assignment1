@@ -1,10 +1,28 @@
 import heapq
 import numpy as np
 
-def fuse_scores(statesConfiguration, results_color_hist, results_sift, results_text, results_deep_learn, results_visual_concept):
+def fuse_scores(statesConfiguration, weights, results_color_hist, results_sift, results_text, results_deep_learn, results_visual_concept):
     # finalresults has {img_id -> 5 dictionaries for the features score}, namely color hist, keyword
     # visual concept, text and deep learning
     final_scores = {}
+
+    colorHistState = statesConfiguration["colorHist"]
+    vcState = statesConfiguration["visualConcept"]
+    vkState = statesConfiguration["visualKeyword"]
+    dpLearnState = statesConfiguration["deepLearning"]
+    textState = True if len(results_text) > 0 else False
+
+    sumWeights = 0
+    if colorHistState is True:
+        sumWeights += weights["colorHistWeight"]
+    if vkState is True:
+        sumWeights += weights["vkWeight"]
+    if vcState is True:
+        sumWeights += weights["vcWeight"]
+    if dpLearnState is True:
+        sumWeights += weights["dpLearnWeight"]
+    if textState is True:
+        sumWeights += weights["textWeight"]
 
     # Inserts score
     for score, img_id in results_color_hist:
@@ -32,31 +50,11 @@ def fuse_scores(statesConfiguration, results_color_hist, results_sift, results_t
             final_scores[img_id] = {}
         final_scores[img_id]["visualConcept"] = score
 
-    print final_scores
-
-    colorHistState = statesConfiguration["colorHist"]
-    vcState = statesConfiguration["visualConcept"]
-    vkState = statesConfiguration["visualKeyword"]
-    dpLearnState = statesConfiguration["deepLearning"]
-    textState = True if len(results_text) > 0 else False
-
-    weights = {"colorHistWeight": 2.0, "vkWeight":2.0, "vcWeight":2.0, "textWeight":2.0, "dpLearnWeight":2.0} #total = 10
-    sumWeights = 0
-    if colorHistState is True:
-        sumWeights += weights["colorHistWeight"]
-    if vkState is True:
-        sumWeights += weights["vkWeight"]
-    if vcState is True:
-        sumWeights += weights["vcWeight"]
-    if dpLearnState is True:
-        sumWeights += weights["dpLearnWeight"]
-    if textState is True:
-        sumWeights += weights["textWeight"]
+    print "Sum weights ", sumWeights
 
     heap_scores = []
     for img_id in final_scores:
-        print img_id
-        scoreColorHist = vkScore = vcScore = dlScore = textScore = 0
+        scoreColorHist = vkScore = vcScore = dlScore = textScore = 1
         if colorHistState is True:
             allScores = final_scores[img_id]
             scoreColorHist = allScores.get("colorHist", 1) 
@@ -121,8 +119,6 @@ def fuse_scores(statesConfiguration, results_color_hist, results_sift, results_t
             else:
                 if len(results_text) > 1:
                     textScore = (textScore - minScore) / (maxScore - minScore)
-
-
 
             textScore *= weights["textWeight"] / sumWeights
 

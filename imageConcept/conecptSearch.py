@@ -7,10 +7,13 @@ class conecptSearch:
     train = imageTrain
     wordlist = train.imageTrain.wordlist
     samplelist = train.imageTrain.vectors
+
     lineList = []
     testPicList = []
     resultPicsList = []
+
     namelist = train.imageTrain.namelist
+
     test_read = open(test_file,'r+')
     for line in test_read:
         vector = []
@@ -20,14 +23,16 @@ class conecptSearch:
         lineList = line.split()
         testPic = lineList[0]
         lineList = lineList[1:]
+
         for i in wordlist:
             try:
                 index = lineList.index(i)
                 vector.append(1)
             except ValueError:
                 vector.append(0)
+
         for sample in samplelist:
-            tmp = map(minus,vector,sample)
+            tmp = map(minus, vector, sample)
             res = sum([abs(x) for x in tmp])
             if (res<result):
                 resList = []
