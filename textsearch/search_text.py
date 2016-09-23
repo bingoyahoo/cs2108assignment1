@@ -14,7 +14,7 @@ import heapq
 
 # ALL_DOC_ID_KEYS = "ALL_DOC_IDS"
 # FILE_DOC_LENGTHS = "lengths.txt"
-HEAP_CAPACITY = 150
+HEAP_CAPACITY = 320
 THRESHOLD_LOW_IDF = 0.35
 K = 16 # Number of results
 
@@ -25,7 +25,7 @@ INPUT_FILE_TAGS_POSTINGS = "text_postings_tags.txt" # Contains actual postings
 OUTPUT_FILE_RANKING = "output_rankings.txt"
 
 
-def search_text_index(input_query):
+def search_text_index(input_query, limit):
 	""" Load the dictionary and execute the queries one by one"""
 	dict_pointers = {}
 	dict_doc_lengths = {}
@@ -51,24 +51,20 @@ def search_text_index(input_query):
 	# global N
 	# N = retrieve_postings(ALL_DOC_ID_KEYS)[0]
 
-	results = execute_query(input_query, dict_pointers)
-	print results
+	results = execute_query(input_query, dict_pointers, limit)
 	# output_file.write(' '.join(str(x) for x in results))
 	# output_file.write("\n")
 
 	dictionary_file.close()
 	posting_file.close()
+	return results
 	# doc_lengths_file.close()
 	# output_file.close()
 
 
-def execute_query(line, dict_pointers):
-	'''Execute query and return top K entries'''
+def execute_query(line, dict_pointers, limit):
+	'''Execute query and return top K=160 entries of (score, img_id)'''
 	scores = {}
-	# stemmer = PorterStemmer()
-
-	# query = nltk.word_tokenize(line)
-	# query = [stemmer.stem(x.lower()) for x in query]
 
 	query = line.split()
 	query = [x.lower() for x in query]
@@ -98,12 +94,12 @@ def execute_query(line, dict_pointers):
 	heap = []
 	for doc in scores:
 		scores[doc] = scores[doc]/math.sqrt(l2_norm_query) #/math.sqrt(dict_doc_lengths[doc])
-		heapq.heappush(heap, (-scores[doc], doc))
+		heapq.heappush(heap, (-scores[doc], doc)) # ALL TIMES -1 so that top of heap is best score
 		if len(heap) >= HEAP_CAPACITY:
 			del heap[HEAP_CAPACITY:] # Pruning non-contenders roughly
 
-	largest = heapq.nsmallest(K, heap)
-	return [doc_id for score, doc_id in largest]
+	largest = heapq.nsmallest(limit, heap) # Because python is min heap so 
+	return largest 
 
 
 def compute_idf(term, dict_pointers):

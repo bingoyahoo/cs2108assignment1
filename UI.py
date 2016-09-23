@@ -9,11 +9,14 @@ from textsearch.search_text import search_text_index
 
 from SIFT.search_sift import SIFTandBOW
 
+from fuse_scores import fuse_scores
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 import design
 import glob
+
+from deeplearning.classify_image import run_inference_on_image
 
 class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	def __init__(self):
@@ -105,21 +108,31 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 
 
 	def search_image(self):
+		final_results = []
+
 		# Perform the search on Color Histogram
 		searcher = Searcher("colorhist/index_color_hist.csv")
-		results = searcher.search(self.queryfeatures, limit=16)
+		results_color_hist = searcher.search(self.queryfeatures, limit=160)
 
-		# Perform text search
-		#if len(self.tags_search.getText) > 0
-			#search_text_index(self.tags_search.getText())
+		# Perform Text Search
+		queryTags = str(self.tags_search.text())
+		results_text = []
+		if len(queryTags) > 0:
+			results_text = search_text_index(queryTags, limit=160) # Will return a min heap (smaller is better)
 
 		# Perform search on SIFT
 		results_sift = self.sab.search(self.hist_sift_query, limit=160)
 
-		for (score, img_id) in results:
+		final_results = fuse_scores(self.statesConfiguration, results_color_hist, results_sift, results_text, [(1, "0321_2347368812.jpg")], [(1, "0350_350973894.jpg")])
+		print final_results
+
+
+		for (score, img_id) in final_results:
 			fullpath = glob.glob(os.path.join(os.path.curdir, "ImageData", "train", "data", "*", img_id) )[0]
 			img_widget_icon = QListWidgetItem(QIcon(fullpath), img_id)
 			self.listWidgetResults.addItem(img_widget_icon)
+
+
 
 	def clear_results(self):
 		self.listWidgetResults.clear()
@@ -133,6 +146,8 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	 		print "Cannot open test_text_tags.txt"
 	 	else:
 	 		self.tags_index = index_tags_normal(file_train_tags)
+	 		file_train_tags.close()
+	 		# print self.tags_index
 
 
 def main():
