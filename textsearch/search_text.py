@@ -41,19 +41,7 @@ def search_text_index(input_query, limit):
 	
 	posting_file = open(os.path.join(os.path.dirname(__file__), INPUT_FILE_TAGS_POSTINGS), "rb")
 
-	# global dict_doc_lengths
-	# doc_lengths_file = open(FILE_DOC_LENGTHS, "rb")
-	# dict_doc_lengths = pickle.load(doc_lengths_file)
-
-	# query_file = open(input_file_q, "rb")
-	# output_file = open(output_file_o, "w")
-
-	# global N
-	# N = retrieve_postings(ALL_DOC_ID_KEYS)[0]
-
 	results = execute_query(input_query, dict_pointers, limit)
-	# output_file.write(' '.join(str(x) for x in results))
-	# output_file.write("\n")
 
 	dictionary_file.close()
 	posting_file.close()
@@ -143,21 +131,7 @@ try:
 except getopt.GetoptError, err:
 	# usage()
 	sys.exit(2)
-# for o, a in opts:
-# 	if o == '-d':
-# 		input_file_d = a
-# 	elif o == '-p':
-# 		input_file_p = a
-# 	elif o == '-q':
-# 		input_file_q = a
-# 	elif o == '-o':
-# 		output_file_o = a
-# 	else:
-# 		assert False, "unhandled option"
 
-# if input_file_d == None or input_file_p == None or input_file_q == None or output_file_o == None:
-# 	usage()
-# 	sys.exit(2)
 
 def main():
 	input_query = None
