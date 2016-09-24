@@ -1,3 +1,10 @@
+Submission By:
+Group 15
+Kang You Wei A0108380L
+Low Zheng Yang A0110930X
+Lu Yuehan A0119387U
+
+
 To run:
 1. Install all dependencies including cv2, numpy, PyQt4
 	a. To install PyQt4: 
@@ -12,3 +19,5 @@ To developers:
 - Name the folder xxxxxsearch where xxxxx is the feature name.
 - Follow the demo, import your files into UI.py and call the functions.
 - Note: You need to create an __init__.py file in that folder for importing. Ths __init__.py file can be empty.
+
+
