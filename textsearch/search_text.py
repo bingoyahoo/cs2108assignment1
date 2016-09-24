@@ -63,22 +63,21 @@ def execute_query(line, dict_pointers, limit):
 	for term in query:
 		# Process high idf terms only unless single term query
 		if compute_idf(term, dict_pointers) >= THRESHOLD_LOW_IDF or len(query) == 1:
-			weighted_term_freq_for_query = 1 + math.log10(query.count(term)) 
-			idf = compute_idf(term, dict_pointers)
-			weighted_term_freq_for_query *= idf 
+			weighted_term_freq_for_query = 1 + math.log10(query.count(term)) #tf
+			idf = compute_idf(term, dict_pointers) #idf
+			weighted_term_freq_for_query *= idf #tf-idf
 
-			l2_norm_query += math.pow(weighted_term_freq_for_query, 2)
+			# l2_norm_query += math.pow(weighted_term_freq_for_query, 2) # For normalisation later
 
-			postings = retrieve_postings(term, dict_pointers)
-
+			postings = retrieve_postings(term, dict_pointers) # Retrieve image_ids to compute train images similarity scores for this term
 			for doc_id, term_freq in postings.iteritems():
 				cur_score = scores.setdefault(doc_id, 0)
 				weighted_term_freq_for_doc = compute_log_tf(term, doc_id, dict_pointers)
-				scores[doc_id] = cur_score + (weighted_term_freq_for_query * weighted_term_freq_for_doc)
+				scores[doc_id] = cur_score + (weighted_term_freq_for_query * weighted_term_freq_for_doc) #existing score + (similarity for this term)
 
 	heap = []
 	for doc in scores:
-		scores[doc] = scores[doc]/math.sqrt(l2_norm_query) #/math.sqrt(dict_doc_lengths[doc])
+		scores[doc] = scores[doc]#/math.sqrt(l2_norm_query) #/math.sqrt(dict_doc_lengths[doc])
 		heapq.heappush(heap, (-scores[doc], doc)) # ALL TIMES -1 so that top of heap is best score
 		if len(heap) >= HEAP_CAPACITY:
 			del heap[HEAP_CAPACITY:] # Pruning non-contenders roughly
