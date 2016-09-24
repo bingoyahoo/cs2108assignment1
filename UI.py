@@ -21,10 +21,17 @@ from multiprocessing.pool import ThreadPool
 
 from deeplearning.classify_image import run_inference_on_image
 from deeplearning.classify_image import run_inference_on_query_image
+from deeplearning.classify_image import create_session
+
+from deeplearning.classify_image import create_graph
 from deeplearning.search_deep_learning import DeepLearningSearcher
+
+from imageconcept.search_concept import search_concept
+from time import sleep
 
 class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	def __init__(self):
+		self.limit = 100
 		self.searcher = Searcher("colorhist/index_color_hist.txt")
 		super(Window, self).__init__()
 		self.setupUi(self)
@@ -35,6 +42,10 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.statesConfiguration = {"colorHist": True, "visualConcept": True, "visualKeyword": True, "deepLearning": True}
 		self.weights = {"colorHistWeight": 1.0, "vkWeight": 1.0, "vcWeight": 1.0, "textWeight": 1.0, "dpLearnWeight": 1.0} #total = 5.0
 		self.deep_learner_searcher = DeepLearningSearcher("deeplearning/output_probabilities.txt")
+		# self.deepLearningGraph = create_graph()
+		self.deepLearningSession, self.softmax_tensor = create_session()
+		self.pool = ThreadPool(processes=4)
+		self.cd = ColorDescriptor((8, 12, 3))
 
 	def home(self):
 		"""Specific to page. Connect the buttons to functions"""
@@ -110,36 +121,49 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		else:
 			pass
 
+	def search_color_hist_in_background(self):
+		query = cv2.imread(self.filename)
+		# load the query image and describe it
+		self.queryfeatures = self.cd.describe(query)
+		return self.searcher.search(self.queryfeatures, self.limit)
 
-	def search_in_background(self):
-		return self.searcher.search(self.queryfeatures, limit=160)
+	def search_visual_concept_in_background(self):
+		path = os.path.join(os.path.curdir, "ImageData", "train", "data")
+		return search_concept(self.filename, path, self.limit)
 
 	def search_deep_learn_in_background(self):
-		self.queryProbability = run_inference_on_query_image(self.filename)
-		return self.deep_learner_searcher.search_deep_learn(self.queryProbability, limit=160)
+		self.queryProbability = run_inference_on_query_image(self.deepLearningSession, self.filename, self.softmax_tensor)
+		return self.deep_learner_searcher.search_deep_learn(self.queryProbability, self.limit)
+
+	def search_sift_in_background(self):
+		query = cv2.imread(self.filename)
+		self.hist_sift_query = self.sab.histogramBow(query)
+		return self.sab.search(self.hist_sift_query, self.limit)
 		
 
 	def choose_image(self):
+
 		self.tags_search.setText("")
 		self.filename = QtGui.QFileDialog.getOpenFileName(self, "Open Image", os.path.dirname(__file__),"Images (*.jpg *.gif *.png)")
 		base_img_id = os.path.splitext(os.path.basename(str(self.filename)))
 		base_img_id = "".join(base_img_id)
 
-		self.label_query_img.setPixmap(QPixmap(self.filename).scaledToWidth(100) )
+		# Deep learning
+		self.async_result_deep_learn = self.pool.apply_async(self.search_deep_learn_in_background, ())
+		# Visual Concept
+		self.async_result_visual_concept = self.pool.apply_async(self.search_visual_concept_in_background, ())
 
 		# COLOR HISTOGRAM -process query image to feature vector
 		# initialize the image descriptor
-		cd = ColorDescriptor((8, 12, 3))
 		self.filename = str(self.filename)
-		query = cv2.imread(self.filename)
-		# load the query image and describe it
-		self.queryfeatures = cd.describe(query)
-		self.pool = ThreadPool(processes=2)
-		self.async_result = self.pool.apply_async(self.search_in_background, ()) # tuple of args for foo
+		self.async_result_color_hist = self.pool.apply_async(self.search_color_hist_in_background, ()) # tuple of args for foo
 
-		self.async_result_deep_learn = self.pool.apply_async(self.search_deep_learn_in_background, ())
+		#SIFT
+		self.async_result_sift = self.pool.apply_async(self.search_sift_in_background, ()) # tuple of args for foo
 
-		self.hist_sift_query = self.sab.histogramBow(query)
+		sleep(1.5)
+
+		self.label_query_img.setPixmap(QPixmap(self.filename).scaledToWidth(100) )
 
 		# If tags exist, load them into the searchbar
 		if base_img_id in self.tags_index:
@@ -147,35 +171,60 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 			self.tags_search.setText(tags)
 	
 
+	def normalize_score(self, score, results):
+		"""Normalises score to 0(best) -> 1(worst)"""
+		if len(results) == 0:
+			return 0.5
+		normalized_score = score
+		maxScore = results[len(results)-1][0]
+		minScore = results[0][0]
+		if maxScore == minScore: # Has vk scores but all the same
+		    normalized_score = 0.5
+		else:
+		    if len(results) > 1:
+		        normalized_score = (normalized_score - minScore) / (maxScore - minScore)
+		return normalized_score
+
+	def get_max(self, results):
+		"""Return max score for the list results"""
+		if len(results) == 0:
+			return 1
+		return results[len(results)-1][0]
+
+
 	def search_image(self):
 		final_results = []
-
-		# Perform the search on Color Histogram
-		results_color_hist = []
-		if self.statesConfiguration["colorHist"] == True:
-			results_color_hist = self.async_result.get()
-		# print results_color_hist
-			# results_color_hist = self.searcher.search(self.queryfeatures, limit=160)
-
+	
 		# Perform Text Search
 		queryTags = str(self.tags_search.text().toLatin1())
 		self.weights["textWeight"] = self.doubleSpinBoxText.value()
-
 		results_text = []
-		# if len(queryTags) > 0:
-		# 	results_text = search_text_index(queryTags, limit=160) # Will return a min heap (smaller is better)
+		if len(queryTags) > 0:
+			results_text = search_text_index(queryTags, self.limit) # Will return a min heap (smaller is better)
 
 		# Perform search on SIFT
 		results_sift = []
 		if self.statesConfiguration["visualKeyword"] == True:
-			results_sift = self.sab.search(self.hist_sift_query, limit=160)
+			results_sift = self.async_result_sift.get()
+
+		# Search Visual Concept
+		results_visual_concept = []
+		if self.statesConfiguration["visualConcept"] == True:
+			results_visual_concept = self.async_result_visual_concept.get()
+
+		# Perform the search on Color Histogram
+		results_color_hist = []
+		if self.statesConfiguration["colorHist"] == True:
+			results_color_hist = self.async_result_color_hist.get()
+
 
 		results_deep_learn = []
 		if self.statesConfiguration["deepLearning"] == True:
-			print "FILE NAME IS ", self.filename
-			results_deep_learn = self.async_result_deep_learn.get() 
+			results_deep_learn = self.async_result_deep_learn.get()
 
-		final_results, all_candidates = fuse_scores(self.statesConfiguration, self.weights, results_color_hist, results_sift, results_text, results_deep_learn, [(1, "0350_350973894.jpg")])
+
+		
+		final_results, all_candidates = fuse_scores(self.statesConfiguration, self.weights, results_color_hist, results_sift, results_text, results_deep_learn, results_visual_concept)
 		# print final_results
 
 		for (score, img_id) in final_results:
@@ -184,20 +233,33 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 
 			tooltip = str(img_id) + "\n" + "Final Score: " + ('%.3f' % score) + "\n"
 			dict_scores = all_candidates[img_id]
-			colorHistScore = dict_scores.get("colorHist", 1)
-			siftScore = dict_scores.get("sift", 1)
-			visualConceptScore = dict_scores.get("visualConcept", 1)
-			deepLearningScore = dict_scores.get("deepLearn", 1)
-			textScore = dict_scores.get("text", 1)
+			
+			colorHistScore = dict_scores.get("colorHist", self.get_max(results_color_hist))
+			siftScore = dict_scores.get("sift", self.get_max(results_sift))
+			visualConceptScore = dict_scores.get("visualConcept", self.get_max(results_visual_concept))
+			deepLearningScore = dict_scores.get("deepLearn", self.get_max(results_deep_learn))
+			textScore = dict_scores.get("text", self.get_max(results_text))
+
+			colorHistScore = self.normalize_score(colorHistScore, results_color_hist)
+			siftScore = self.normalize_score(siftScore, results_sift)
+			visualConceptScore = self.normalize_score(visualConceptScore, results_visual_concept)
+			deepLearningScore = self.normalize_score(deepLearningScore, results_deep_learn)
+			textScore = self.normalize_score(textScore, results_text)
+
 			tooltip += "Color Hist: " + ('%.3f' % colorHistScore) + "\n"
 			tooltip += "Visual Keyword: " + ('%.3f' % siftScore) + "\n"
 			tooltip += "Visual Concept: " + ('%.3f' % visualConceptScore) + "\n"
 			tooltip += "Deep Learning: " + ('%.3f' % deepLearningScore) + "\n"
-			tooltip += "Text: " + ('%.3f' % textScore)
+			if len(results_text) == 0:
+				tooltip += "Text: N/A"  
+			else:
+				tooltip += "Text: " + ('%.3f' % textScore)
 
 
 			img_widget_icon.setToolTip(tooltip)
 			self.listWidgetResults.addItem(img_widget_icon)
+
+		self.compare(final_results)
 
 
 	def clear_results(self):
@@ -214,6 +276,27 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	 		self.tags_index = index_tags_normal(file_train_tags)
 	 		file_train_tags.close()
 	 		# print self.tags_index
+
+	def compare(self, final_results):
+		category_name = "cat"
+	 	path = os.path.join(os.path.dirname(__file__), "ImageData", "train", "data", category_name)
+	 	img_dir = glob.glob(path + "/*.jpg")
+	 	count = 0
+
+	 	# print final_results
+	 	# print img_dir
+	 	for imagePath in img_dir:
+			imageID = imagePath[imagePath.rfind("/") + 1:]
+
+			for score, img in final_results:
+				# print img
+				if img == imageID:
+					# print imageID
+					count += 1
+					break
+		print count
+ 
+
 
 
 def main():

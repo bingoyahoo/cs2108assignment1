@@ -80,35 +80,41 @@ DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-
 def create_graph():
   """Creates a graph from saved GraphDef file and returns a saver."""
   # Creates graph from saved graph_def.pb.
+
   with tf.gfile.FastGFile(os.path.join(
-      FLAGS.model_dir, 'classify_image_graph_def.pb'), 'rb') as f:
+      '/tmp/imagenet', 'classify_image_graph_def.pb'), 'rb') as f:
     graph_def = tf.GraphDef()
     graph_def.ParseFromString(f.read())
-    _ = tf.import_graph_def(graph_def, name='')
+    pythonGraph = tf.import_graph_def(graph_def, name='')
 
-def run_inference_on_query_image(imagePath):
-  # tf.app.run()
-  maybe_download_and_extract()
-
-
+def create_session():
   create_graph()
-  with tf.Session() as sess:
-    softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
+  sess = tf.Session()
+  softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
+  return sess, softmax_tensor
 
-    # use glob to grab the image paths and loop over them
-        # extract the image ID (i.e. the unique filename) from the image
-        # path and load the image itself
-    # Store dictionary
-    # tf.app.flags.DEFINE_string('image_file', imagePath,   ### here you can indicate the image file"""Absolute path to image file.""")
-    if not tf.gfile.Exists(imagePath):
-      tf.logging.fatal('File does not exist %s', imagePath)
-    image_data = tf.gfile.FastGFile(imagePath, 'rb').read()
-    imageID = imagePath[imagePath.rfind("/") + 1:]
+def run_inference_on_query_image(sess, imagePath, softmax_tensor):
+  # tf.app.run()
+  # maybe_download_and_extract()
 
-    predictions = sess.run(softmax_tensor,
-                           {'DecodeJpeg/contents:0': image_data})
-    predictions = np.squeeze(predictions)
-    return predictions
+
+  # sess = create_session()
+  # with tf.Session() as sess:
+
+  # use glob to grab the image paths and loop over them
+      # extract the image ID (i.e. the unique filename) from the image
+      # path and load the image itself
+  # Store dictionary
+  # tf.app.flags.DEFINE_string('image_file', imagePath,   ### here you can indicate the image file"""Absolute path to image file.""")
+  if not tf.gfile.Exists(imagePath):
+    tf.logging.fatal('File does not exist %s', imagePath)
+  image_data = tf.gfile.FastGFile(imagePath, 'rb').read()
+  imageID = imagePath[imagePath.rfind("/") + 1:]
+
+  predictions = sess.run(softmax_tensor,
+                         {'DecodeJpeg/contents:0': image_data})
+  predictions = np.squeeze(predictions)
+  return predictions
 
 
 def run_inference_on_image(image_dir):
