@@ -20,6 +20,8 @@ import glob
 from multiprocessing.pool import ThreadPool
 
 from deeplearning.classify_image import run_inference_on_image
+from deeplearning.classify_image import run_inference_on_query_image
+from deeplearning.search_deep_learning import DeepLearningSearcher
 
 class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	def __init__(self):
@@ -28,10 +30,11 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.setupUi(self)
 		
 		self.home()
-		self.sab = SIFTandBOW()
+		self.sab = SIFTandBOW(True)
 		self.build_index()
 		self.statesConfiguration = {"colorHist": True, "visualConcept": True, "visualKeyword": True, "deepLearning": True}
 		self.weights = {"colorHistWeight": 1.0, "vkWeight": 1.0, "vcWeight": 1.0, "textWeight": 1.0, "dpLearnWeight": 1.0} #total = 5.0
+		self.deep_learner_searcher = DeepLearningSearcher("deeplearning/output_probabilities.txt")
 
 	def home(self):
 		"""Specific to page. Connect the buttons to functions"""
@@ -110,6 +113,10 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 
 	def search_in_background(self):
 		return self.searcher.search(self.queryfeatures, limit=160)
+
+	def search_deep_learn_in_background(self):
+		self.queryProbability = run_inference_on_query_image(self.filename)
+		return self.deep_learner_searcher.search_deep_learn(self.queryProbability, limit=160)
 		
 
 	def choose_image(self):
@@ -127,9 +134,10 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		query = cv2.imread(self.filename)
 		# load the query image and describe it
 		self.queryfeatures = cd.describe(query)
-		pool = ThreadPool(processes=1)
-		self.async_result = pool.apply_async(self.search_in_background, ()) # tuple of args for foo
+		self.pool = ThreadPool(processes=2)
+		self.async_result = self.pool.apply_async(self.search_in_background, ()) # tuple of args for foo
 
+		self.async_result_deep_learn = self.pool.apply_async(self.search_deep_learn_in_background, ())
 
 		self.hist_sift_query = self.sab.histogramBow(query)
 
@@ -154,22 +162,40 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.weights["textWeight"] = self.doubleSpinBoxText.value()
 
 		results_text = []
-		if len(queryTags) > 0:
-			results_text = search_text_index(queryTags, limit=160) # Will return a min heap (smaller is better)
+		# if len(queryTags) > 0:
+		# 	results_text = search_text_index(queryTags, limit=160) # Will return a min heap (smaller is better)
 
 		# Perform search on SIFT
 		results_sift = []
 		if self.statesConfiguration["visualKeyword"] == True:
 			results_sift = self.sab.search(self.hist_sift_query, limit=160)
 
-		final_results = fuse_scores(self.statesConfiguration, self.weights, results_color_hist, results_sift, results_text, [(1, "0321_2347368812.jpg")], [(1, "0350_350973894.jpg")])
-		# print final_results
+		results_deep_learn = []
+		if self.statesConfiguration["deepLearning"] == True:
+			print "FILE NAME IS ", self.filename
+			results_deep_learn = self.async_result_deep_learn.get() 
 
+		final_results, all_candidates = fuse_scores(self.statesConfiguration, self.weights, results_color_hist, results_sift, results_text, results_deep_learn, [(1, "0350_350973894.jpg")])
+		# print final_results
 
 		for (score, img_id) in final_results:
 			fullpath = glob.glob(os.path.join(os.path.curdir, "ImageData", "train", "data", "*", img_id) )[0]
 			img_widget_icon = QListWidgetItem(QIcon(fullpath), img_id)
-			tooltip = str(img_id) + "\n" + "Final Score: " + ('%.3f' % score)
+
+			tooltip = str(img_id) + "\n" + "Final Score: " + ('%.3f' % score) + "\n"
+			dict_scores = all_candidates[img_id]
+			colorHistScore = dict_scores.get("colorHist", 1)
+			siftScore = dict_scores.get("sift", 1)
+			visualConceptScore = dict_scores.get("visualConcept", 1)
+			deepLearningScore = dict_scores.get("deepLearn", 1)
+			textScore = dict_scores.get("text", 1)
+			tooltip += "Color Hist: " + ('%.3f' % colorHistScore) + "\n"
+			tooltip += "Visual Keyword: " + ('%.3f' % siftScore) + "\n"
+			tooltip += "Visual Concept: " + ('%.3f' % visualConceptScore) + "\n"
+			tooltip += "Deep Learning: " + ('%.3f' % deepLearningScore) + "\n"
+			tooltip += "Text: " + ('%.3f' % textScore)
+
+
 			img_widget_icon.setToolTip(tooltip)
 			self.listWidgetResults.addItem(img_widget_icon)
 

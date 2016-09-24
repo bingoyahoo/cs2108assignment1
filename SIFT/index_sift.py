@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import glob
 import argparse
-import search_sift
+# import search_sift
 import cPickle as pickle
 import os
 
@@ -16,7 +16,45 @@ ap.add_argument("-i", "--index", required = False, default='index.csv',
     help = "Path to where the computed index will be stored")
 args = vars(ap.parse_args())
 
-sab = search_sift.SIFTandBOW()
+# sab = search_sift.SIFTandBOW(False)
+
+sift = cv2.SIFT()
+dictionarySize = 10
+BOW = cv2.BOWKMeansTrainer(dictionarySize)
+
+def generate_sift_feature(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    kp, des = sift.detectAndCompute(gray,None)
+    return kp, des
+
+def addDescriptor(des):
+    #add the descriptor into the bag of words
+    BOW.add(des)
+
+def clusterBow():
+    #cluster the keypoints in the bag of words
+    return BOW.cluster()
+
+def extractBow():
+    #set up the bow to use for extracting the histogram
+    bf = cv2.BFMatcher(cv2.NORM_L2)
+    sift2 = cv2.DescriptorExtractor_create("SIFT")
+    return cv2.BOWImgDescriptorExtractor(sift2, bf)
+
+def histogramBow(image, bow_extract):
+    #compute the histogram based on the bow
+    kp,des = generate_sift_feature(image)
+    histogram = bow_extract.compute(image, kp)
+    histogram = cv2.normalize(histogram, histogram).flatten()
+    return histogram
+    
+def chi2_distance(histA, histB, eps = 1e-10):
+    # compute the chi-squared distance
+    d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps)
+    for (a, b) in zip(histA, histB)])
+
+    # return the chi-squared distance
+    return d
 
 # use glob to grab the image paths and loop over them
 for imagePath in glob.glob(args["dataset"] + "/*.jpg"):
@@ -25,12 +63,11 @@ for imagePath in glob.glob(args["dataset"] + "/*.jpg"):
     imageID = imagePath[imagePath.rfind("/") + 1:]
     image = cv2.imread(imagePath)
 
-    kp,des = sab.generate_sift_feature(image)
-    sab.addDescriptor(des)
+    kp, des = generate_sift_feature(image)
+    addDescriptor(des)
 
-dictionary = sab.clusterBow()
-
-bow_extract = sab.extractBow()
+dictionary = clusterBow()
+bow_extract = extractBow()
 bow_extract.setVocabulary(dictionary)
 
 dict_imgid_hist = {}
@@ -39,7 +76,7 @@ for imagePath in glob.glob(args["dataset"] + "/*.jpg"):
     image = cv2.imread(imagePath)
     img_id = os.path.basename(imagePath)
 
-    histogram = sab.histogramBow(image)
+    histogram = histogramBow(image, bow_extract)
     dict_imgid_hist[img_id] = histogram
 
 # Store dictionary

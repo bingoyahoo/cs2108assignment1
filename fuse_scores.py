@@ -108,6 +108,7 @@ def fuse_scores(statesConfiguration, weights, results_color_hist, results_sift, 
                     dlScore = (dlScore - minScore) / (maxScore - minScore)
 
             dlScore *= weights["dpLearnWeight"] / sumWeights
+
         if textState is True:
             allScores = final_scores[img_id]
             textScore = allScores.get("text", 1) 
@@ -126,7 +127,7 @@ def fuse_scores(statesConfiguration, weights, results_color_hist, results_sift, 
         heapq.heappush(heap_scores, (sumScore, img_id)) # push (sumScore, img_id) into heap
     
     topResult = heapq.nsmallest(16, heap_scores)
-    return topResult
+    return topResult, final_scores
 
 def main():
     list1 = [(0.25, "abc")]

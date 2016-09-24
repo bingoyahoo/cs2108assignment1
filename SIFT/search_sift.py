@@ -7,23 +7,25 @@ import heapq
 
 class SIFTandBOW:
     sift = cv2.SIFT()
-    dictionarySize = 1000
+    dictionarySize = 10
     BOW = cv2.BOWKMeansTrainer(dictionarySize)
 
-    def __init__(self):
+    def __init__(self, isSearching=False):
         OUTPUT_DICTIONARY = "output_dict.txt"
         OUTPUT_IMGID_HIST = "output_histograms.txt"
-        file_dictionary = open(os.path.join(os.path.dirname(__file__), OUTPUT_DICTIONARY), "rb")
-        file_img_hist = open(os.path.join(os.path.dirname(__file__), OUTPUT_IMGID_HIST), "rb")
-
-        self.dictionary = pickle.load(file_dictionary)
-        self.img_hist = pickle.load(file_img_hist)
-
         self.bow_extract = self.extractBow()
-        self.bow_extract.setVocabulary(self.dictionary)
-        
-        file_dictionary.close()
-        file_img_hist.close()
+
+        if isSearching:
+            file_dictionary = open(os.path.join(os.path.dirname(__file__), OUTPUT_DICTIONARY), "rb")
+            file_img_hist = open(os.path.join(os.path.dirname(__file__), OUTPUT_IMGID_HIST), "rb")
+
+            self.dictionary = pickle.load(file_dictionary)
+            self.img_hist = pickle.load(file_img_hist)
+
+            self.bow_extract.setVocabulary(self.dictionary)
+            
+            file_dictionary.close()
+            file_img_hist.close()
 
 
     def generate_sift_feature(self,img):
