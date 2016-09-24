@@ -75,7 +75,6 @@ def fuse_scores(statesConfiguration, weights, results_color_hist, results_sift, 
             scoreColorHist = allScores.get("colorHist", results_color_hist[len(results_color_hist)-1][0]) 
             scoreColorHist = normalize_score(scoreColorHist, results_color_hist)
             scoreColorHist *= weights["colorHistWeight"] / sumWeights
-            # print scoreColorHist
 
         if vkState is True:
             vkScore = allScores.get("sift", results_sift[len(results_sift)-1][0]) 
@@ -83,7 +82,8 @@ def fuse_scores(statesConfiguration, weights, results_color_hist, results_sift, 
             vkScore *= weights["vkWeight"] / sumWeights
 
         if vcState is True:
-            vcScore = allScores.get("visualConcept", results_visual_concept[len(results_visual_concept)-1][0]) 
+            if len(results_visual_concept) != 0:
+                vcScore = allScores.get("visualConcept", results_visual_concept[len(results_visual_concept)-1][0]) 
             vcScore = normalize_score(vcScore, results_visual_concept)            
             vcScore *= weights["vcWeight"] / sumWeights
         
