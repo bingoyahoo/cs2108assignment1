@@ -142,28 +142,25 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		
 
 	def choose_image(self):
-
 		self.tags_search.setText("")
 		self.filename = QtGui.QFileDialog.getOpenFileName(self, "Open Image", os.path.dirname(__file__),"Images (*.jpg *.gif *.png)")
 		base_img_id = os.path.splitext(os.path.basename(str(self.filename)))
 		base_img_id = "".join(base_img_id)
 
-		# Deep learning
+		# Deep Learning
 		self.async_result_deep_learn = self.pool.apply_async(self.search_deep_learn_in_background, ())
 		# Visual Concept
 		self.async_result_visual_concept = self.pool.apply_async(self.search_visual_concept_in_background, ())
-
-		# COLOR HISTOGRAM -process query image to feature vector
-		# initialize the image descriptor
+		# Color Histogram -process query image to feature vector
 		self.filename = str(self.filename)
 		self.async_result_color_hist = self.pool.apply_async(self.search_color_hist_in_background, ()) # tuple of args for foo
-
-		#SIFT
+		# SIFT
 		self.async_result_sift = self.pool.apply_async(self.search_sift_in_background, ()) # tuple of args for foo
 
 		sleep(1.6)
 
 		self.label_query_img.setPixmap(QPixmap(self.filename).scaledToWidth(100) )
+		self.label_query_img.setToolTip(base_img_id)
 
 		# If tags exist, load them into the searchbar
 		if base_img_id in self.tags_index:
