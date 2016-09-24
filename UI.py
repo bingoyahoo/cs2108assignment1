@@ -8,26 +8,21 @@ from colorhist.searcher import Searcher
 from textsearch.index_text import build_normal_index
 from textsearch.index_text import index_tags_normal
 from textsearch.search_text import search_text_index
-
 from SIFT.search_sift import SIFTandBOW
-
 from fuse_scores import fuse_scores
-
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 import design
 import glob
 from multiprocessing.pool import ThreadPool
-
 from deeplearning.classify_image import run_inference_on_image
 from deeplearning.classify_image import run_inference_on_query_image
 from deeplearning.classify_image import create_session
-
 from deeplearning.classify_image import create_graph
 from deeplearning.search_deep_learning import DeepLearningSearcher
-
 from imageconcept.search_concept import search_concept
 from time import sleep
+
 
 class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	def __init__(self):
@@ -66,7 +61,6 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 
 		self.show()
 
-
 	def value_changed(self):
 		self.weights = {"colorHistWeight": self.doubleSpinBoxColorHist.value(), 
 		 "vkWeight": self.doubleSpinBoxVisualKeyword.value(),
@@ -74,7 +68,6 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		 "textWeight": self.doubleSpinBoxText.value(), 
 		 "dpLearnWeight": self.doubleSpinBoxDeepLearning.value()} #total = 10
 		print self.weights
-
 
 	def state_changed(self):
 		if self.checkBoxColorHist.isChecked():
@@ -106,11 +99,9 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 
 		print self.statesConfiguration
 
-
 	def closeEvent(self, event):
 		event.ignore()
 		self.close_application()
-
 
 	def close_application(self):
 		choice = QtGui.QMessageBox.question(self, "Quit?", 
@@ -139,14 +130,12 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		query = cv2.imread(self.filename)
 		self.hist_sift_query = self.sab.histogramBow(query)
 		return self.sab.search(self.hist_sift_query, self.limit)
-		
 
 	def choose_image(self):
 		self.tags_search.setText("")
 		self.filename = QtGui.QFileDialog.getOpenFileName(self, "Open Image", os.path.dirname(__file__),"Images (*.jpg *.gif *.png)")
 		base_img_id = os.path.splitext(os.path.basename(str(self.filename)))
 		base_img_id = "".join(base_img_id)
-
 		# Deep Learning
 		self.async_result_deep_learn = self.pool.apply_async(self.search_deep_learn_in_background, ())
 		# Visual Concept
@@ -156,9 +145,7 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.async_result_color_hist = self.pool.apply_async(self.search_color_hist_in_background, ()) # tuple of args for foo
 		# SIFT
 		self.async_result_sift = self.pool.apply_async(self.search_sift_in_background, ()) # tuple of args for foo
-
 		sleep(1.6)
-
 		self.label_query_img.setPixmap(QPixmap(self.filename).scaledToWidth(100) )
 		self.label_query_img.setToolTip(base_img_id)
 
@@ -178,7 +165,7 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		normalized_score = score
 		maxScore = results[len(results)-1][0]
 		minScore = results[0][0]
-		if maxScore == minScore: # Has vk scores but all the same
+		if maxScore == minScore: 
 		    normalized_score = 0.5
 		else:
 		    if len(results) > 1:
@@ -186,7 +173,7 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		return normalized_score
 
 	def get_max(self, results):
-		"""Return max score for the list results"""
+		"""Return the largest score from the results"""
 		if len(results) == 0:
 			return 1
 		return results[len(results)-1][0]
@@ -217,15 +204,11 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		if self.statesConfiguration["colorHist"] == True:
 			results_color_hist = self.async_result_color_hist.get()
 
-
 		results_deep_learn = []
 		if self.statesConfiguration["deepLearning"] == True:
 			results_deep_learn = self.async_result_deep_learn.get()
-
-
 		
 		final_results, all_candidates = fuse_scores(self.statesConfiguration, self.weights, results_color_hist, results_sift, results_text, results_deep_learn, results_visual_concept)
-		# print final_results
 
 		for (score, img_id) in final_results:
 			fullpath = glob.glob(os.path.join(os.path.curdir, "ImageData", "train", "data", "*", img_id) )[0]
@@ -254,11 +237,8 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 				tooltip += "Text: N/A"  
 			else:
 				tooltip += "Text: " + ('%.3f' % textScore)
-
-
 			img_widget_icon.setToolTip(tooltip)
 			self.listWidgetResults.addItem(img_widget_icon)
-
 		self.compare(final_results)
 
 
@@ -278,26 +258,20 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 	 		# print self.tags_index
 
 	def compare(self, final_results):
-		category_name = "cat"
+		"""For testing F1"""
+		category_name = "cat" # Put category here
 	 	path = os.path.join(os.path.dirname(__file__), "ImageData", "train", "data", category_name)
 	 	img_dir = glob.glob(path + "/*.jpg")
 	 	count = 0
 
-	 	# print final_results
-	 	# print img_dir
 	 	for imagePath in img_dir:
 			imageID = imagePath[imagePath.rfind("/") + 1:]
 
 			for score, img in final_results:
-				# print img
 				if img == imageID:
-					# print imageID
 					count += 1
 					break
 		print count
- 
-
-
 
 def main():
 	app = QtGui.QApplication(sys.argv)
