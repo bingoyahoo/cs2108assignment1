@@ -24,10 +24,11 @@ def search_concept( filepath , path= r"D:\CS2108\ImageData\ImageData",limit = 10
             tmp.append(0)
     v = tmp
     train = open(os.path.join(os.path.dirname(__file__), FILE_TRAIN_RES ),'r')
+
     for lines in train:
         queryv = lines.split()[2:]
         queryv = map(float,queryv)
-        d = chi2_distance(queryv,v)
+        d = chi2_distance(np.array(queryv), np.array(v))
         result[lines.split()[0].replace(r'.txt',r'.jpg')] = d
     train.close()
     result = sorted([(v, k) for (k, v) in result.items()])

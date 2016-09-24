@@ -18,9 +18,10 @@ class DeepLearningSearcher():
 
 	def search_deep_learn(self, queryProbability, limit=16):
 		results = {}
+		queryProbability = np.array(queryProbability)
 		for img_id in self.dictionary:
 			probabilities = self.dictionary[img_id]
-			d = self.chi2_distance(probabilities, queryProbability)
+			d = self.chi2_distance(np.array(probabilities), queryProbability)
 			results[img_id] = d
 
 		results = sorted([(v, k) for (k, v) in results.items()])

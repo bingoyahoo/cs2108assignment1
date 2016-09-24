@@ -161,7 +161,7 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		#SIFT
 		self.async_result_sift = self.pool.apply_async(self.search_sift_in_background, ()) # tuple of args for foo
 
-		sleep(1.5)
+		sleep(1.6)
 
 		self.label_query_img.setPixmap(QPixmap(self.filename).scaledToWidth(100) )
 
@@ -169,6 +169,9 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		if base_img_id in self.tags_index:
 			tags = " ".join(self.tags_index[base_img_id])
 			self.tags_search.setText(tags)
+		self.raise_()
+		self.activateWindow()
+		self.btn_search.setFocus()
 	
 
 	def normalize_score(self, score, results):

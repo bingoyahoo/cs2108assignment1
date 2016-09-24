@@ -67,7 +67,7 @@ class SIFTandBOW:
         for x in self.img_hist.iteritems():
             img_id = x[0]
             db_histogram = x[1]
-            distance = self.chi2_distance(query_hist, db_histogram)
+            distance = self.chi2_distance(np.array(query_hist), np.array(db_histogram))
             scores[img_id] = distance
 
         heap = []
