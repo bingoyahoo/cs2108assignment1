@@ -35,7 +35,7 @@ class Window(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.sab = SIFTandBOW(True)
 		self.build_index()
 		self.statesConfiguration = {"colorHist": True, "visualConcept": True, "visualKeyword": True, "deepLearning": True}
-		self.weights = {"colorHistWeight": 1.0, "vkWeight": 1.0, "vcWeight": 1.0, "textWeight": 1.0, "dpLearnWeight": 1.0} #total = 5.0
+		self.weights = {"colorHistWeight": 3.0, "vkWeight": 1.0, "vcWeight": 2.0, "textWeight": 1.0, "dpLearnWeight": 3.0} #total = 5.0
 		self.deep_learner_searcher = DeepLearningSearcher("deeplearning/output_probabilities.txt")
 		# self.deepLearningGraph = create_graph()
 		self.deepLearningSession, self.softmax_tensor = create_session()
