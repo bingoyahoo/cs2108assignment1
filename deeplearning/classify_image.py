@@ -88,6 +88,8 @@ def create_graph():
     pythonGraph = tf.import_graph_def(graph_def, name='')
 
 def create_session():
+  maybe_download_and_extract()
+
   create_graph()
   sess = tf.Session()
   softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
@@ -126,7 +128,7 @@ def run_inference_on_image(image_dir):
   Returns:
     Nothing
   """
-  
+
   # Creates graph from saved GraphDef.
   create_graph()
 
