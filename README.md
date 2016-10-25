@@ -1,9 +1,9 @@
-Submission By:
-Group 15
-Kang You Wei A0108380L
-Low Zheng Yang A0110930X
-Lu Yuehan A0119387U
+Our System:
 
+![Image Retrieval](https://github.com/bingoyahoo/cs2108assignment1/blob/master/Latest%20Screenshot.png)
+
+
+------------------------------------------------------------------------------------------------
 
 To run:
 1. Install all dependencies including cv2, numpy, PyQt4
@@ -20,4 +20,11 @@ To developers:
 - Follow the demo, import your files into UI.py and call the functions.
 - Note: You need to create an __init__.py file in that folder for importing. Ths __init__.py file can be empty.
 
+------------------------------------------------------------------------------------------------
+
+Submission By:
+Group 15
+Kang You Wei A0108380L
+Low Zheng Yang A0110930X
+Lu Yuehan A0119387U
 

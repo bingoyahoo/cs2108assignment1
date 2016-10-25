@@ -25,7 +25,7 @@ if __name__ == '__main__':
 	for imagePath in glob.glob(args["dataset"] + "/*.jpg"):
 		# extract the image ID (i.e. the unique filename) from the image
 		# path and load the image itself
-		imageID = imagePath[imagePath.rfind("/") + 1:]
+		image_id_ext = imagePath[imagePath.rfind("/") + 1:]
 		image = cv2.imread(imagePath)
 
 		# describe the image
