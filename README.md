@@ -1,4 +1,4 @@
-##Introduction:
+## Introduction:
 This is a simple __Image-based retrieval system__ written in Python 2.7. It uses basic visual features like Color Histogram, Visual Concept, Visual Keywords, Deep Learning and text retrieval to search for 16 images in the database that is most similar to the one uploaded by an user. The user can also tweak the weights to fine-tune the ranking of the results. 
 
 Here is a screenshot:
@@ -7,7 +7,7 @@ Here is a screenshot:
 
 
 ---
-##How to run
+## How to run
 
 1. Install all dependencies including cv2, numpy, PyQt4
   
@@ -20,7 +20,7 @@ Here is a screenshot:
 2. Simply run `python UI.py` from terminal/command prompt! Enjoy!
 
 ---
-##Developers Tips:
+## Developers Tips:
 - Put all of your code and index files into a separate folder for easier packaging.
 - Name the folder `xxxxxsearch` where xxxxx is the feature name.
 - Follow the demo, import your files into `UI.py` and call the functions.
@@ -28,5 +28,5 @@ Here is a screenshot:
 
 
 ---
-##Note:
+## Note:
 - This system only works for .jpg images for now.
